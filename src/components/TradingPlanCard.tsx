@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import type { TradingPlan as TPlan, Bias, Signal } from '@/types/trading';
 import { Target, Shield, Crosshair, MessageSquare, TrendingUp, TrendingDown, Minus, Activity, Brain, Lock, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 interface TradingPlanCardProps {
   plan: TPlan;
@@ -43,29 +44,31 @@ export function TradingPlanCard({ plan }: TradingPlanCardProps) {
   const marketTypeLabel = plan.marketType === 'TREND_MONTH' ? 'Trend' : plan.marketType === 'RANGE_MONTH' ? 'Range' : 'Normal';
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card border border-border rounded-lg overflow-hidden">
-      {/* Header */}
-      <div className={`p-4 border-b ${meta.bg}`}>
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-3">
-            <span className={meta.color}>{meta.icon}</span>
-            <div>
-              <h3 className={`text-base sm:text-lg font-bold font-mono uppercase ${meta.color}`}>{meta.label}</h3>
-              <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
-                <span className="text-xs font-mono text-muted-foreground">
-                  Market: <span className="text-foreground">{marketTypeLabel}</span>
-                </span>
-                <span className="text-xs font-mono text-muted-foreground">
-                  Signal: <span className={`font-semibold ${sigColor}`}>{signalLabel(plan.signal)}</span>
-                </span>
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full">
+      <Accordion type="single" collapsible defaultValue="plan" className="w-full">
+        <AccordionItem value="plan" className="bg-card border border-border rounded-lg overflow-hidden border-b-0">
+          <AccordionTrigger className={`px-4 py-4 hover:no-underline border-b ${meta.bg} data-[state=closed]:border-b-0`}>
+            <div className="flex items-start justify-between gap-3 flex-wrap w-full pr-2 text-left">
+              <div className="flex items-center gap-3">
+                <span className={meta.color}>{meta.icon}</span>
+                <div>
+                  <h3 className={`text-base sm:text-lg font-bold font-mono uppercase ${meta.color}`}>{meta.label}</h3>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+                    <span className="text-xs font-mono text-muted-foreground font-normal">
+                      Market: <span className="text-foreground">{marketTypeLabel}</span>
+                    </span>
+                    <span className="text-xs font-mono text-muted-foreground font-normal">
+                      Signal: <span className={`font-semibold ${sigColor}`}>{signalLabel(plan.signal)}</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className={`px-3 py-1 rounded text-[10px] font-mono font-bold uppercase bg-secondary ${sigColor}`}>
+                {signalLabel(plan.signal)}
               </div>
             </div>
-          </div>
-          <div className={`px-3 py-1 rounded text-[10px] font-mono font-bold uppercase bg-secondary ${sigColor}`}>
-            {signalLabel(plan.signal)}
-          </div>
-        </div>
-      </div>
+          </AccordionTrigger>
+          <AccordionContent className="p-0 border-t-0">
 
         {/* First-day override / invalidation banner */}
       {(plan.firstDayOverrideApplied || plan.biasValidity === 'INVALIDATED') && (
@@ -199,6 +202,9 @@ export function TradingPlanCard({ plan }: TradingPlanCardProps) {
           </div>
         )}
       </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </motion.div>
   );
 }

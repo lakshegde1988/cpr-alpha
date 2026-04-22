@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { StockSearch } from '@/components/StockSearch';
+import { StockTable } from '@/components/StockTable';
+import { StockSearchBar } from '@/components/StockSearchBar';
 import { TradingTypeSelector } from '@/components/TradingTypeSelector';
 import { TradingPlanCard } from '@/components/TradingPlanCard';
 import { IntelligenceDashboard } from '@/components/IntelligenceDashboard';
@@ -27,13 +28,40 @@ export default function Index() {
   const [mobileTab, setMobileTab] = useState<'live' | 'plan' | 'analysis'>('plan');
 
 
-  const handleSelectStock = useCallback((symbol: string) => {
+  const handleSelectStock = useCallback(async (symbol: string) => {
     setSelectedSymbol(symbol);
-    setTradingType(null);
+    const type: TradingType = 'positional'; // Auto-select positional to show trade plan immediately
+    setTradingType(type);
     setStockData(null);
     setCprValues(null);
     setPlan(null);
     setError(null);
+    setLoading(true);
+
+    try {
+      const [sd, candles] = await Promise.all([
+        fetchStockData(symbol),
+        fetchDailyCandles(symbol, type),
+      ]);
+      setStockData(sd);
+
+      const result = computeCPRForTimeframe(candles, type);
+      if (!result) throw new Error('Could not compute CPR — insufficient data');
+
+      setCprValues(result.cpr);
+      setPriorCprValues(result.priorCPR);
+      setCurrentPeriodCandles(result.currentPeriodCandles);
+      setCprWidth(getCPRWidth(result.cpr.tc, result.cpr.bc, sd.cmp));
+      setTwoDayRelation(getTwoDayRelation(candles));
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch data');
+      setStockData(null);
+      setCprValues(null);
+      setPriorCprValues(null);
+      setCurrentPeriodCandles([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const handleTradingTypeChange = useCallback(async (type: TradingType) => {
@@ -92,7 +120,7 @@ export default function Index() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background relative overflow-x-hidden flex flex-col font-sans">
+    <div className="min-h-screen bg-background relative flex flex-col font-sans">
       <div className="ambient-glow" />
       <div className="ambient-glow-secondary" />
       <div className="soft-grid" />
@@ -125,7 +153,7 @@ export default function Index() {
         </AnimatePresence>
       </header>
 
-      <main className="relative z-10 flex-1 w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col min-h-0">
+      <main className="relative z-10 w-full max-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col items-center">
         <AnimatePresence mode="wait">
           {!tradingType && !loading && (
             <motion.div 
@@ -134,23 +162,9 @@ export default function Index() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.4 }}
-              className="flex-1 flex flex-col items-center pt-10 sm:pt-[10vh] max-w-2xl mx-auto w-full text-center space-y-10"
+              className="flex-1 flex flex-col items-center pt-4 sm:pt-6 max-w-2xl mx-auto w-full text-center space-y-10"
             >
-              <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium mb-4">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                  </span>
-                  Live Market Analysis
-                </div>
-                <h2 className="text-5xl sm:text-6xl font-bold font-heading tracking-tight text-foreground drop-shadow-sm">
-                  Master the Markets
-                </h2>
-                <p className="text-muted-foreground text-lg sm:text-xl font-light max-w-xl mx-auto leading-relaxed">
-                  Advanced Central Pivot Range charting and algorithmic trading plans for modern traders.
-                </p>
-              </div>
+              
 
               <div className="w-full glass-panel rounded-3xl p-6 sm:p-8 space-y-6 relative group border-white/[0.08]">
                 <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
@@ -164,13 +178,24 @@ export default function Index() {
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="text-left space-y-3 relative z-10"
+                      className="text-left space-y-3 relative z-10 max-h-[60vh] overflow-y-auto"
                     >
-                      <label className="text-xs font-semibold text-foreground/70 uppercase tracking-widest flex items-center gap-3">
+                      <label className="text-xs font-semibold text-foreground/70 uppercase tracking-widest flex items-center gap-3 mb-4">
                         <span className="w-6 h-6 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-mono font-bold flex items-center justify-center">1</span>
-                        Search Asset
+                        Select Asset
                       </label>
-                      <StockSearch onSelect={handleSelectStock} selected={selectedSymbol} />
+                      
+                      {/* Search Bar */}
+                      <div className="mb-6">
+                        <StockSearchBar onSelect={handleSelectStock} />
+                      </div>
+                      
+                      {/* Or browse table */}
+                      <div className="text-center mb-4">
+                        <span className="text-xs text-muted-foreground font-mono">or browse all stocks</span>
+                      </div>
+                      
+                      <StockTable onSelect={handleSelectStock} />
                     </motion.div>
                   ) : (
                     <motion.div 
@@ -210,10 +235,10 @@ export default function Index() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="flex flex-col flex-1 space-y-6 w-full"
+              className="flex flex-col space-y-6 w-full"
             >
               {loading && (
-                <div className="flex-1 flex flex-col items-center justify-center py-32">
+                <div className="flex flex-col items-center justify-center py-32 min-h-[400px]">
                   <div className="relative">
                     <div className="w-20 h-20 rounded-full border-4 border-primary/10 border-t-primary animate-spin" />
                      <div className="absolute inset-0 flex items-center justify-center">
@@ -238,51 +263,89 @@ export default function Index() {
               )}
 
               {hasResults && (
-                <div className="pb-20">
-                  {/* Mobile Tabs */}
-                  <div className="xl:hidden flex items-center bg-white/[0.02] border border-white/[0.05] rounded-xl p-1 mb-6">
+                <div className="w-full">
+                  {/* Desktop Tabs */}
+                  <div className="hidden xl:flex items-center bg-white/[0.02] border border-white/[0.05] rounded-xl p-1 mb-6 max-w-4xl mx-auto w-full">
                     <button
                       onClick={() => setMobileTab('live')}
-                      className={`flex-1 text-xs font-semibold py-2.5 rounded-lg transition-colors ${mobileTab === 'live' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                      className={`flex-1 text-sm font-semibold py-3 rounded-lg transition-colors ${mobileTab === 'live' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
                     >
                       Live Market
                     </button>
                     <button
                       onClick={() => setMobileTab('plan')}
-                      className={`flex-1 text-xs font-semibold py-2.5 rounded-lg transition-colors ${mobileTab === 'plan' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                      className={`flex-1 text-sm font-semibold py-3 rounded-lg transition-colors ${mobileTab === 'plan' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
                     >
                       Trading Plan
                     </button>
                     <button
                       onClick={() => setMobileTab('analysis')}
-                      className={`flex-1 text-xs font-semibold py-2.5 rounded-lg transition-colors ${mobileTab === 'analysis' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                      className={`flex-1 text-sm font-semibold py-3 rounded-lg transition-colors ${mobileTab === 'analysis' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
                     >
-                      Full Analysis
+                      Intelligence Analysis
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-                    <div className={`xl:col-span-5 space-y-6 flex-col ${mobileTab === 'live' || mobileTab === 'plan' ? 'flex' : 'hidden xl:flex'}`}>
-                      {plan && (
-                        <div className={mobileTab === 'live' ? 'block' : 'hidden xl:block'}>
-                          <LiveEngine
-                            symbol={stockData.symbol}
-                            cpr={cprValues}
-                            priorCpr={priorCprValues}
-                            plan={plan}
-                            stock={stockData}
-                            onCmpUpdate={(cmp) => setStockData((prev) => (prev ? { ...prev, cmp } : prev))}
-                          />
-                        </div>
-                      )}
-                      {plan && (
-                        <div className={mobileTab === 'plan' ? 'block' : 'hidden xl:block'}>
-                          <TradingPlanCard plan={plan} />
-                        </div>
-                      )}
-                    </div>
-                    <div className={`xl:col-span-7 space-y-6 flex-col ${mobileTab === 'analysis' ? 'flex' : 'hidden xl:flex'}`}>
-                      {plan && (
+                  {/* Mobile Tabs */}
+                  <div className="xl:hidden flex items-center bg-white/[0.02] border border-white/[0.05] rounded-xl p-1 mb-6 max-w-4xl mx-auto w-full">
+                    <button
+                      onClick={() => setMobileTab('live')}
+                      className={`flex-1 text-xs font-semibold py-2.5 rounded-lg transition-colors ${mobileTab === 'live' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      Live
+                    </button>
+                    <button
+                      onClick={() => setMobileTab('plan')}
+                      className={`flex-1 text-xs font-semibold py-2.5 rounded-lg transition-colors ${mobileTab === 'plan' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      Plan
+                    </button>
+                    <button
+                      onClick={() => setMobileTab('analysis')}
+                      className={`flex-1 text-xs font-semibold py-2.5 rounded-lg transition-colors ${mobileTab === 'analysis' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      Analysis
+                    </button>
+                  </div>
+
+                  {/* Tab Content */}
+                  <div className="w-full max-w-4xl mx-auto">
+                    {mobileTab === 'live' && plan && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="w-full max-w-4xl mx-auto"
+                      >
+                        <LiveEngine
+                          symbol={stockData.symbol}
+                          cpr={cprValues}
+                          priorCpr={priorCprValues}
+                          plan={plan}
+                          stock={stockData}
+                          onCmpUpdate={(cmp) => setStockData((prev) => (prev ? { ...prev, cmp } : prev))}
+                        />
+                      </motion.div>
+                    )}
+
+                    {mobileTab === 'plan' && plan && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="w-full max-w-4xl mx-auto"
+                      >
+                        <TradingPlanCard plan={plan} />
+                      </motion.div>
+                    )}
+
+                    {mobileTab === 'analysis' && plan && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="w-full max-w-4xl mx-auto"
+                      >
                         <IntelligenceDashboard
                           plan={plan}
                           cpr={cprValues}
@@ -292,8 +355,8 @@ export default function Index() {
                           currentPeriodCandles={currentPeriodCandles}
                           tradingType={tradingType!}
                         />
-                      )}
-                    </div>
+                      </motion.div>
+                    )}
                   </div>
                 </div>
               )}
