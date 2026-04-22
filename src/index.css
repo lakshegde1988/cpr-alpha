@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    --background: 240 10% 4%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 10% 6%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 10% 6%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 10% 12%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 10% 12%;
+    --muted-foreground: 240 5% 65%;
+
+    --accent: 210 100% 50%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 10% 12%;
+    --input: 240 10% 12%;
+    --ring: 160 84% 39%;
+
+    --radius: 1.25rem;
+
+    --bullish: 160 84% 39%;
+    --bearish: 0 84% 60%;
+    --neutral: 45 93% 47%;
+    --info: 210 100% 50%;
+    
+    --sidebar-background: 240 10% 6%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 160 84% 39%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 10% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 10% 12%;
+    --sidebar-ring: 160 84% 39%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased selection:bg-primary/30;
+  }
+}
+
+@layer utilities {
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+  
+  .font-heading {
+    font-family: 'Outfit', sans-serif;
+  }
+
+  .glass-panel {
+    @apply bg-white/[0.02] backdrop-blur-3xl border border-white/[0.05] shadow-[0_8px_32px_rgba(0,0,0,0.4)];
+  }
+
+  .ambient-glow {
+    position: absolute;
+    width: 60vw;
+    height: 60vw;
+    background: radial-gradient(circle, hsla(var(--primary)/0.12) 0%, transparent 60%);
+    filter: blur(80px);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    top: -20vh;
+    left: -20vw;
+  }
+
+  .ambient-glow-secondary {
+    position: absolute;
+    width: 60vw;
+    height: 60vw;
+    background: radial-gradient(circle, hsla(var(--accent)/0.1) 0%, transparent 60%);
+    filter: blur(80px);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    bottom: -20vh;
+    right: -20vw;
+  }
+
+  .soft-grid {
+    background-size: 50px 50px;
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 30%, transparent 80%);
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  
+  .pulse-border {
+    animation: pulseBorder 4s ease-in-out infinite;
+  }
+  
+  @keyframes pulseBorder {
+    0%, 100% { border-color: rgba(255,255,255,0.05); }
+    50% { border-color: hsla(var(--primary)/0.3); }
+  }
+}
