@@ -95,8 +95,8 @@ export function StockTable({ onSelect }: StockTableProps) {
   return (
     <div className="w-full flex flex-col space-y-4">
       <div className="rounded-xl border border-border bg-card/50 backdrop-blur-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm whitespace-nowrap">
+        <div>
+          <table className="w-full text-left text-sm">
             <thead className="bg-secondary/50 text-muted-foreground font-mono">
               <tr>
                 <th className="px-4 py-3 font-semibold">Stock</th>
