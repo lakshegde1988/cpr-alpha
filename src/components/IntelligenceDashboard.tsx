@@ -25,6 +25,12 @@ import {
   type QualityLabel,
 } from '@/lib/intelligence';
 import { calculateCPR } from '@/lib/cpr';
+import {
+  calculateDynamicTarget,
+  getZoneLabel,
+  getZoneColor,
+  type DynamicTarget,
+} from '@/lib/dynamic-targets';
 
 interface Props {
   plan: TradingPlan;
@@ -64,6 +70,8 @@ function directionStyle(d: 'LONG' | 'SHORT' | 'NONE') {
 export function IntelligenceDashboard({ plan, cpr, priorCpr, stock, width, currentPeriodCandles, tradingType }: Props) {
   const period = tradingType === 'positional' ? 'monthly' : 'yearly';
   const insight = computeIntelligence(plan, cpr, priorCpr, stock, width, period);
+  const dynamicTarget = calculateDynamicTarget(stock.cmp, cpr);
+  const zoneColor = getZoneColor(dynamicTarget.zone);
   const qStyle = qualityStyle(insight.qualityLabel);
   const sStyle = statusStyle(insight.biasStatus);
   const dStyle = directionStyle(insight.direction);
@@ -238,6 +246,63 @@ export function IntelligenceDashboard({ plan, cpr, priorCpr, stock, width, curre
             Insufficient daily candles to compute today's CPR
           </div>
         )}
+      </motion.section>
+
+      {/* === DYNAMIC TARGET BASED ON CMP === */}
+      <motion.section
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-card border border-border rounded-lg p-4"
+      >
+        <div className="flex items-center gap-2 mb-3">
+          <Target className="w-4 h-4 text-primary" />
+          <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+            Dynamic Target Analysis
+          </h3>
+        </div>
+        
+        <div className="space-y-3">
+          {/* CMP Value */}
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-mono text-muted-foreground">Current CMP</span>
+            <span className="text-sm font-mono font-semibold">{dynamicTarget.cmp.toFixed(2)}</span>
+          </div>
+          
+          {/* Pivot Zone */}
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-mono text-muted-foreground">Pivot Zone</span>
+            <span className={`text-sm font-mono font-semibold ${zoneColor}`}>
+              {getZoneLabel(dynamicTarget.zone)}
+            </span>
+          </div>
+          
+          {/* Target Level */}
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-mono text-muted-foreground">Target Level</span>
+            {dynamicTarget.targetLevel === 'RANGE' ? (
+              <span className="text-sm font-mono font-semibold text-neutral">
+                Range Bound
+              </span>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className={`text-sm font-mono font-semibold ${zoneColor}`}>
+                  {dynamicTarget.targetLevel}
+                </span>
+                <span className="text-xs font-mono text-muted-foreground">
+                  {dynamicTarget.targetValue.toFixed(2)}
+                </span>
+              </div>
+            )}
+          </div>
+          
+          {/* Reasoning */}
+          <div className="pt-2 border-t border-border">
+            <div className="text-xs font-mono text-muted-foreground mb-1">Reasoning</div>
+            <div className="text-xs font-mono text-foreground leading-relaxed">
+              {dynamicTarget.reasoning}
+            </div>
+          </div>
+        </div>
       </motion.section>
 
       {/* === TRADE PLANS (2 COLUMN LAYOUT) === */}
