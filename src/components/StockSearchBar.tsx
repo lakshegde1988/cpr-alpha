@@ -114,7 +114,7 @@ export function StockSearchBar({ onSelect }: StockSearchBarProps) {
 
       {/* Suggestions dropdown */}
       {showSuggestions && !loading && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto max-w-full">
           {filteredStocks.length > 0 ? (
             filteredStocks.map((stock) => {
               const quote = quotes[stock.Symbol];

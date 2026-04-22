@@ -55,6 +55,7 @@
 @layer base {
   html {
     height: 100%;
+    overflow-x: hidden;
   }
   * {
     @apply border-border;
@@ -62,6 +63,7 @@
   body {
     height: 100%;
     overflow-x: hidden;
+    max-width: 100vw;
     @apply bg-background text-foreground font-sans antialiased selection:bg-primary/30;
   }
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Loader2 } from 'lucide-react';
 import { fetchStockData } from '@/lib/yahoo-finance';
+import { StockTableMobile } from '@/components/StockTableMobile';
 
 interface Stock {
   Symbol: string;
@@ -94,55 +95,64 @@ export function StockTable({ onSelect }: StockTableProps) {
 
   return (
     <div className="w-full flex flex-col space-y-4">
-      <div className="rounded-xl border border-border bg-card/50 backdrop-blur-sm overflow-hidden overflow-x-hidden">
-        <div className="overflow-x-hidden">
-          <table className="w-full text-left text-sm table-fixed">
-            <thead className="bg-secondary/50 text-muted-foreground font-mono">
-              <tr>
-                <th className="px-2 py-3 font-semibold text-xs sm:px-4 sm:text-sm">Stock</th>
-                <th className="px-2 py-3 font-semibold text-right text-xs sm:px-4 sm:text-sm">CMP</th>
-                <th className="px-2 py-3 font-semibold text-right text-xs sm:px-4 sm:text-sm hidden sm:table-cell">% Change</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/50">
-              {currentStocks.map((stock) => {
-                const quote = quotes[stock.Symbol];
-                const isPositive = quote?.percentChange >= 0;
-                
-                return (
-                  <tr 
-                    key={stock.Symbol}
-                    onClick={() => onSelect(stock.Symbol)}
-                    className="hover:bg-primary/5 cursor-pointer transition-colors group"
-                  >
-                    <td className="px-2 py-3 font-mono font-medium text-foreground group-hover:text-primary transition-colors text-xs sm:px-4 sm:text-sm">
-                      {stock.Symbol}
-                    </td>
-                    <td className="px-2 py-3 text-right font-mono text-xs sm:px-4 sm:text-sm">
-                      {quote ? (
-                        quote.cmp > 0 ? quote.cmp.toFixed(2) : '-'
-                      ) : (
-                        <span className="inline-block w-3 h-3 sm:w-4 sm:h-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin"></span>
-                      )}
-                    </td>
-                    <td className="px-2 py-3 text-right font-mono text-xs sm:px-4 sm:text-sm hidden sm:table-cell">
-                      {quote ? (
-                        quote.cmp > 0 ? (
-                          <span className={`inline-flex items-center justify-end gap-1 ${isPositive ? 'text-emerald-500' : 'text-rose-500'}`}>
-                            {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                            {Math.abs(quote.percentChange).toFixed(2)}%
-                          </span>
-                        ) : '-'
-                      ) : (
-                        <span className="inline-block w-3 h-3 sm:w-4 sm:h-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin"></span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+      {/* Mobile: Card Layout */}
+      <div className="sm:hidden">
+        <StockTableMobile 
+          onSelect={onSelect}
+          stocks={currentStocks}
+          quotes={quotes}
+          loadingQuotes={loadingQuotes}
+        />
+      </div>
+      
+      {/* Desktop: Table Layout */}
+      <div className="hidden sm:block rounded-xl border border-border bg-card/50 backdrop-blur-sm overflow-hidden">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-secondary/50 text-muted-foreground font-mono">
+            <tr>
+              <th className="px-4 py-3 font-semibold">Stock</th>
+              <th className="px-4 py-3 font-semibold text-right">CMP</th>
+              <th className="px-4 py-3 font-semibold text-right">% Change</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border/50">
+            {currentStocks.map((stock) => {
+              const quote = quotes[stock.Symbol];
+              const isPositive = quote?.percentChange >= 0;
+              
+              return (
+                <tr 
+                  key={stock.Symbol}
+                  onClick={() => onSelect(stock.Symbol)}
+                  className="hover:bg-primary/5 cursor-pointer transition-colors group"
+                >
+                  <td className="px-4 py-3 font-mono font-medium text-foreground group-hover:text-primary transition-colors">
+                    {stock.Symbol}
+                  </td>
+                  <td className="px-4 py-3 text-right font-mono">
+                    {quote ? (
+                      quote.cmp > 0 ? quote.cmp.toFixed(2) : '-'
+                    ) : (
+                      <span className="inline-block w-4 h-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin"></span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right font-mono">
+                    {quote ? (
+                      quote.cmp > 0 ? (
+                        <span className={`inline-flex items-center justify-end gap-1 ${isPositive ? 'text-emerald-500' : 'text-rose-500'}`}>
+                          {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                          {Math.abs(quote.percentChange).toFixed(2)}%
+                        </span>
+                      ) : '-'
+                    ) : (
+                      <span className="inline-block w-4 h-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin"></span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
       {/* Pagination */}
