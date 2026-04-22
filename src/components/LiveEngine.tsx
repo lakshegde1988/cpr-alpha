@@ -165,25 +165,6 @@ export function LiveEngine({ symbol, cpr, priorCpr, plan, stock, onCmpUpdate }: 
       </div>
 
       <div className="p-4 space-y-4">
-        {/* Symbol + CMP block */}
-        <div className="flex items-end justify-between gap-3 flex-wrap">
-          <div>
-            <div className="text-lg font-bold font-mono terminal-glow">{symbol}</div>
-            <div className="text-[10px] font-mono uppercase text-muted-foreground mt-1">Current Market Price</div>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-2xl sm:text-3xl font-bold font-mono terminal-glow">₹{cmp.toFixed(2)}</span>
-              <span className={`flex items-center gap-1 text-xs font-mono ${isUp ? 'text-bullish' : 'text-bearish'}`}>
-                {isUp ? <ArrowUpCircle className="w-3.5 h-3.5" /> : <ArrowDownCircle className="w-3.5 h-3.5" />}
-                {Math.abs(change).toFixed(2)} ({Math.abs(changePct).toFixed(2)}%)
-              </span>
-            </div>
-            <div className="text-[10px] font-mono text-muted-foreground/70 mt-1">Last sync: {lastSyncStr}</div>
-          </div>
-          <div className={`px-3 py-1.5 rounded border font-mono text-xs font-bold ${msStyle.bg} ${msStyle.color}`}>
-            {msStyle.label}
-          </div>
-        </div>
-
         {/* Scenario tracker */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="bg-secondary/50 rounded p-3">

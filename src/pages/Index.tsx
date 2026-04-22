@@ -10,7 +10,7 @@ import { computeCPRForTimeframe, getCPRWidth, getCPRTrend, getTwoDayRelation } f
 import { fetchDailyCandles, fetchStockData } from '@/lib/yahoo-finance';
 import { generateTradingPlan } from '@/lib/trading-plan';
 import type { TradingType, CPRWidth, TwoDayRelation, StockData, CPRValues, TradingPlan } from '@/types/trading';
-import { Zap, Loader2, AlertCircle, ChevronRight } from 'lucide-react';
+import { Zap, Loader2, AlertCircle, ChevronRight, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 
 export default function Index() {
   const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
@@ -264,6 +264,29 @@ export default function Index() {
 
               {hasResults && (
                 <div className="w-full">
+                  {/* Stock Info - Extracted from LiveEngine */}
+                  <div className="mb-6 max-w-4xl mx-auto w-full">
+                    <div className="glass-panel rounded-xl p-4 border border-white/[0.08]">
+                      <div className="flex items-end justify-between gap-3 flex-wrap">
+                        <div>
+                          <div className="text-lg font-bold font-mono terminal-glow">{stockData.symbol}</div>
+                          <div className="text-[10px] font-mono uppercase text-muted-foreground mt-1">Current Market Price</div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-2xl sm:text-3xl font-bold font-mono terminal-glow">₹{stockData.cmp.toFixed(2)}</span>
+                            <span className={`flex items-center gap-1 text-xs font-mono ${(stockData.cmp - stockData.prevClose) >= 0 ? 'text-bullish' : 'text-bearish'}`}>
+                              {(stockData.cmp - stockData.prevClose) >= 0 ? (
+                                <ArrowUpCircle className="w-3.5 h-3.5" />
+                              ) : (
+                                <ArrowDownCircle className="w-3.5 h-3.5" />
+                              )}
+                              {Math.abs(stockData.cmp - stockData.prevClose).toFixed(2)} ({Math.abs(((stockData.cmp - stockData.prevClose) / stockData.prevClose) * 100).toFixed(2)}%)
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Desktop Tabs */}
                   <div className="hidden xl:flex items-center bg-white/[0.02] border border-white/[0.05] rounded-xl p-1 mb-6 max-w-4xl mx-auto w-full">
                     <button

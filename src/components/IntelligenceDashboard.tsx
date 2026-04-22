@@ -62,7 +62,8 @@ function directionStyle(d: 'LONG' | 'SHORT' | 'NONE') {
 }
 
 export function IntelligenceDashboard({ plan, cpr, priorCpr, stock, width, currentPeriodCandles, tradingType }: Props) {
-  const insight = computeIntelligence(plan, cpr, priorCpr, stock, width);
+  const period = tradingType === 'positional' ? 'monthly' : 'yearly';
+  const insight = computeIntelligence(plan, cpr, priorCpr, stock, width, period);
   const qStyle = qualityStyle(insight.qualityLabel);
   const sStyle = statusStyle(insight.biasStatus);
   const dStyle = directionStyle(insight.direction);
@@ -112,7 +113,7 @@ export function IntelligenceDashboard({ plan, cpr, priorCpr, stock, width, curre
             >
               <Zap className="w-4 h-4 text-bullish shrink-0" />
               <div className="text-xs sm:text-sm font-mono text-bullish">
-                <span className="font-bold">Potential Trend Day</span> — Narrow CPR + Bias Confirmed
+                <span className="font-bold">Potential Trend Month</span> — Narrow CPR + Bias Confirmed
               </div>
             </motion.div>
           )}
@@ -152,20 +153,20 @@ export function IntelligenceDashboard({ plan, cpr, priorCpr, stock, width, curre
         <div className="flex items-center gap-2 mb-3">
           <Layers className="w-4 h-4 text-info" />
           <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
-            Market Context — {periodLabel} CPR
+            Market Context
           </h3>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-3 sm:gap-4">
           <div className="bg-secondary/50 rounded p-3">
             <div className="text-[10px] uppercase font-mono text-muted-foreground">Relationship</div>
             <div className="text-sm font-mono font-semibold mt-0.5">{insight.relationshipLabel}</div>
           </div>
           <div className="bg-secondary/50 rounded p-3">
-            <div className="text-[10px] uppercase font-mono text-muted-foreground">{periodLabel} CPR Width</div>
+            <div className="text-[10px] uppercase font-mono text-muted-foreground">Width</div>
             <div className="text-sm font-mono font-semibold mt-0.5">{insight.widthLabel}</div>
           </div>
           <div className="bg-secondary/50 rounded p-3">
-            <div className="text-[10px] uppercase font-mono text-muted-foreground">Expected {periodLabel} Type</div>
+            <div className="text-[10px] uppercase font-mono text-muted-foreground">Expectation</div>
             <div className="text-sm font-mono font-semibold mt-0.5">{insight.expectedDayType}</div>
           </div>
         </div>
@@ -239,63 +240,66 @@ export function IntelligenceDashboard({ plan, cpr, priorCpr, stock, width, curre
         )}
       </motion.section>
 
-      {/* === PRIMARY TRADE PLAN === */}
-      <motion.section
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-card border border-border rounded-lg overflow-hidden"
-      >
-        <div className={`px-4 py-3 border-b flex items-center justify-between gap-3 flex-wrap ${dStyle.bg}`}>
-          <div className="flex items-center gap-2">
-            <Target className="w-4 h-4 text-primary" />
-            <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Primary Trade Plan</h3>
+      {/* === TRADE PLANS (2 COLUMN LAYOUT) === */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* === PRIMARY TRADE PLAN === */}
+        <motion.section
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-card border border-border rounded-lg overflow-hidden"
+        >
+          <div className={`px-4 py-3 border-b flex items-center justify-between gap-3 flex-wrap ${dStyle.bg}`}>
+            <div className="flex items-center gap-2">
+              <Target className="w-4 h-4 text-primary" />
+              <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Primary Trade Plan</h3>
+            </div>
+            <div className={`flex items-center gap-1.5 px-3 py-1 rounded font-mono text-xs font-bold ${dStyle.color} bg-card/60`}>
+              {dStyle.icon}
+              {dStyle.label}
+            </div>
           </div>
-          <div className={`flex items-center gap-1.5 px-3 py-1 rounded font-mono text-xs font-bold ${dStyle.color} bg-card/60`}>
-            {dStyle.icon}
-            {dStyle.label}
-          </div>
-        </div>
-        <div className="p-4 space-y-3">
-          <PlanRow icon={<Crosshair className="w-3.5 h-3.5 text-primary" />} label="Entry Zone" value={plan.entryZone} />
-          <PlanRow icon={<Zap className="w-3.5 h-3.5 text-info" />} label="Entry Trigger" value={'Daily candle close confirmation in entry zone'} />
-          <PlanRow icon={<ShieldAlert className="w-3.5 h-3.5 text-bearish" />} label="Stop Loss" value={plan.stopLoss} />
-          <div className="flex gap-3">
-            <Target className="w-3.5 h-3.5 text-bullish mt-0.5 shrink-0" />
-            <div className="min-w-0">
-              <div className="text-[10px] font-mono uppercase text-muted-foreground mb-1">Targets</div>
-              <div className="space-y-0.5">
-                {plan.targets.map((t, i) => (
-                  <div key={i} className="text-sm font-mono break-words">{t}</div>
-                ))}
+          <div className="p-4 space-y-3">
+            <PlanRow icon={<Crosshair className="w-3.5 h-3.5 text-primary" />} label="Entry Zone" value={plan.entryZone} />
+            <PlanRow icon={<Zap className="w-3.5 h-3.5 text-info" />} label="Entry Trigger" value={'Daily candle close confirmation in entry zone'} />
+            <PlanRow icon={<ShieldAlert className="w-3.5 h-3.5 text-bearish" />} label="Stop Loss" value={plan.stopLoss} />
+            <div className="flex gap-3">
+              <Target className="w-3.5 h-3.5 text-bullish mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <div className="text-[10px] font-mono uppercase text-muted-foreground mb-1">Targets</div>
+                <div className="space-y-0.5">
+                  {plan.targets.map((t, i) => (
+                    <div key={i} className="text-sm font-mono break-words">{t}</div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </motion.section>
+        </motion.section>
 
-      {/* === ALTERNATE PLAN === */}
-      <motion.section
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={`bg-card border rounded-lg overflow-hidden ${insight.reversalWarning ? 'border-bearish/40 ring-1 ring-bearish/30' : 'border-border'}`}
-      >
-        <div className="px-4 py-3 border-b border-border flex items-center justify-between gap-3 flex-wrap bg-secondary/30">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className={`w-4 h-4 ${insight.reversalWarning ? 'text-bearish' : 'text-neutral'}`} />
-            <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Alternate Plan</h3>
+        {/* === ALTERNATE PLAN === */}
+        <motion.section
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`bg-card border rounded-lg overflow-hidden ${insight.reversalWarning ? 'border-bearish/40 ring-1 ring-bearish/30' : 'border-border'}`}
+        >
+          <div className="px-4 py-3 border-b border-border flex items-center justify-between gap-3 flex-wrap bg-secondary/30">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className={`w-4 h-4 ${insight.reversalWarning ? 'text-bearish' : 'text-neutral'}`} />
+              <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Alternate Plan</h3>
+            </div>
+            <div className={`flex items-center gap-1.5 px-3 py-1 rounded font-mono text-xs font-bold ${directionStyle(insight.alternatePlan.direction).color} bg-card/60`}>
+              {directionStyle(insight.alternatePlan.direction).icon}
+              {directionStyle(insight.alternatePlan.direction).label}
+            </div>
           </div>
-          <div className={`flex items-center gap-1.5 px-3 py-1 rounded font-mono text-xs font-bold ${directionStyle(insight.alternatePlan.direction).color} bg-card/60`}>
-            {directionStyle(insight.alternatePlan.direction).icon}
-            {directionStyle(insight.alternatePlan.direction).label}
+          <div className="p-4 space-y-3">
+            <PlanRow icon={<Zap className="w-3.5 h-3.5 text-info" />} label="Trigger" value={insight.alternatePlan.trigger} />
+            <PlanRow icon={<Crosshair className="w-3.5 h-3.5 text-primary" />} label="Entry" value={insight.alternatePlan.entry} />
+            <PlanRow icon={<ShieldAlert className="w-3.5 h-3.5 text-bearish" />} label="Stop Loss" value={insight.alternatePlan.stopLoss} />
+            <PlanRow icon={<Target className="w-3.5 h-3.5 text-bullish" />} label="Target" value={insight.alternatePlan.target} />
           </div>
-        </div>
-        <div className="p-4 space-y-3">
-          <PlanRow icon={<Zap className="w-3.5 h-3.5 text-info" />} label="Trigger" value={insight.alternatePlan.trigger} />
-          <PlanRow icon={<Crosshair className="w-3.5 h-3.5 text-primary" />} label="Entry" value={insight.alternatePlan.entry} />
-          <PlanRow icon={<ShieldAlert className="w-3.5 h-3.5 text-bearish" />} label="Stop Loss" value={insight.alternatePlan.stopLoss} />
-          <PlanRow icon={<Target className="w-3.5 h-3.5 text-bullish" />} label="Target" value={insight.alternatePlan.target} />
-        </div>
-      </motion.section>
+        </motion.section>
+      </div>
 
       {/* === CONFIDENCE & QUALITY === */}
       <motion.section

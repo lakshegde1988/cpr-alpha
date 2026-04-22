@@ -11,7 +11,7 @@ import type {
 export type QualityLabel = 'A+ Setup' | 'Strong Setup' | 'Moderate Setup' | 'Avoid Trading';
 export type BiasStatus = 'CONFIRMED' | 'FAILED' | 'NEUTRAL';
 export type DirectionTag = 'LONG' | 'SHORT' | 'NONE';
-export type DayTypeLabel = 'Trend Day' | 'Range Day' | 'Breakout Day' | 'Normal Day';
+export type DayTypeLabel = 'Trend Day' | 'Range Day' | 'Breakout Day' | 'Normal Day' | 'Trend Month' | 'Range Month' | 'Breakout Month' | 'Normal Month' | 'Trend Year' | 'Range Year' | 'Breakout Year' | 'Normal Year';
 
 export interface AlternatePlan {
   trigger: string;
@@ -76,11 +76,17 @@ function widthLabelOf(w: CPRWidth | null): string {
   return 'Moderate';
 }
 
-function dayTypeOf(marketType: MarketType, bias: Bias): DayTypeLabel {
-  if (bias === 'RANGE_BREAKOUT_SETUP' || bias === 'HIGH_CONVICTION_BREAKOUT') return 'Breakout Day';
-  if (marketType === 'TREND_MONTH') return 'Trend Day';
-  if (marketType === 'RANGE_MONTH') return 'Range Day';
-  return 'Normal Day';
+function dayTypeOf(marketType: MarketType, bias: Bias, period: 'monthly' | 'yearly' = 'monthly'): DayTypeLabel {
+  const periodLabel = period === 'monthly' ? 'Month' : period === 'yearly' ? 'Year' : 'Day';
+  const trendLabel = `Trend ${periodLabel}` as DayTypeLabel;
+  const rangeLabel = `Range ${periodLabel}` as DayTypeLabel;
+  const breakoutLabel = `Breakout ${periodLabel}` as DayTypeLabel;
+  const normalLabel = `Normal ${periodLabel}` as DayTypeLabel;
+  
+  if (bias === 'RANGE_BREAKOUT_SETUP' || bias === 'HIGH_CONVICTION_BREAKOUT') return breakoutLabel;
+  if (marketType === 'TREND_MONTH') return trendLabel;
+  if (marketType === 'RANGE_MONTH') return rangeLabel;
+  return normalLabel;
 }
 
 function directionFromSignal(signal: Signal): DirectionTag {
@@ -202,6 +208,7 @@ export function computeIntelligence(
   prior: CPRValues | null,
   stock: StockData,
   width: CPRWidth | null,
+  period: 'monthly' | 'yearly' = 'monthly',
 ): IntelligenceInsights {
   const status = computeBiasStatus(plan.bias, stock.cmp, cpr, prior);
   const confidenceScore = computeConfidence(plan.bias, plan.marketType, width, status);
@@ -225,7 +232,7 @@ export function computeIntelligence(
   return {
     relationshipLabel: relationshipFromBias(plan.bias),
     widthLabel: widthLabelOf(width),
-    expectedDayType: dayTypeOf(plan.marketType, plan.bias),
+    expectedDayType: dayTypeOf(plan.marketType, plan.bias, period),
     initialBias: plan.bias,
     finalBias,
     biasStatus: status,
