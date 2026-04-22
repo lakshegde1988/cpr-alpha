@@ -94,14 +94,14 @@ export function StockTable({ onSelect }: StockTableProps) {
 
   return (
     <div className="w-full flex flex-col space-y-4">
-      <div className="rounded-xl border border-border bg-card/50 backdrop-blur-sm overflow-hidden">
-        <div>
-          <table className="w-full text-left text-sm">
+      <div className="rounded-xl border border-border bg-card/50 backdrop-blur-sm overflow-hidden overflow-x-hidden">
+        <div className="overflow-x-hidden">
+          <table className="w-full text-left text-sm table-fixed">
             <thead className="bg-secondary/50 text-muted-foreground font-mono">
               <tr>
-                <th className="px-4 py-3 font-semibold">Stock</th>
-                <th className="px-4 py-3 font-semibold text-right">CMP</th>
-                <th className="px-4 py-3 font-semibold text-right">% Change</th>
+                <th className="px-2 py-3 font-semibold text-xs sm:px-4 sm:text-sm">Stock</th>
+                <th className="px-2 py-3 font-semibold text-right text-xs sm:px-4 sm:text-sm">CMP</th>
+                <th className="px-2 py-3 font-semibold text-right text-xs sm:px-4 sm:text-sm hidden sm:table-cell">% Change</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">
@@ -115,17 +115,17 @@ export function StockTable({ onSelect }: StockTableProps) {
                     onClick={() => onSelect(stock.Symbol)}
                     className="hover:bg-primary/5 cursor-pointer transition-colors group"
                   >
-                    <td className="px-4 py-3 font-mono font-medium text-foreground group-hover:text-primary transition-colors">
+                    <td className="px-2 py-3 font-mono font-medium text-foreground group-hover:text-primary transition-colors text-xs sm:px-4 sm:text-sm">
                       {stock.Symbol}
                     </td>
-                    <td className="px-4 py-3 text-right font-mono">
+                    <td className="px-2 py-3 text-right font-mono text-xs sm:px-4 sm:text-sm">
                       {quote ? (
                         quote.cmp > 0 ? quote.cmp.toFixed(2) : '-'
                       ) : (
-                        <span className="inline-block w-4 h-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin"></span>
+                        <span className="inline-block w-3 h-3 sm:w-4 sm:h-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin"></span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right font-mono">
+                    <td className="px-2 py-3 text-right font-mono text-xs sm:px-4 sm:text-sm hidden sm:table-cell">
                       {quote ? (
                         quote.cmp > 0 ? (
                           <span className={`inline-flex items-center justify-end gap-1 ${isPositive ? 'text-emerald-500' : 'text-rose-500'}`}>
@@ -134,7 +134,7 @@ export function StockTable({ onSelect }: StockTableProps) {
                           </span>
                         ) : '-'
                       ) : (
-                        <span className="inline-block w-4 h-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin"></span>
+                        <span className="inline-block w-3 h-3 sm:w-4 sm:h-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin"></span>
                       )}
                     </td>
                   </tr>

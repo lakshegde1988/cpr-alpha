@@ -153,7 +153,7 @@ export default function Index() {
         </AnimatePresence>
       </header>
 
-      <main className="relative z-10 w-full max-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col items-center">
+      <main className="relative z-10 w-full max-3xl mx-auto px-2 sm:px-4 lg:px-8 py-8 flex flex-col items-center overflow-x-hidden">
         <AnimatePresence mode="wait">
           {!tradingType && !loading && (
             <motion.div 
@@ -162,11 +162,11 @@ export default function Index() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.4 }}
-              className="flex-1 flex flex-col items-center pt-4 sm:pt-6 max-w-2xl mx-auto w-full text-center space-y-10"
+              className="flex-1 flex flex-col items-center pt-4 sm:pt-6 max-w-full sm:max-w-2xl mx-auto w-full text-center space-y-10"
             >
               
 
-              <div className="w-full glass-panel rounded-3xl p-6 sm:p-8 space-y-6 relative group border-white/[0.08]">
+              <div className="w-full glass-panel rounded-3xl p-4 sm:p-8 space-y-6 relative group border-white/[0.08] overflow-x-hidden">
                 <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </div>
